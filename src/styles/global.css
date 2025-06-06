@@ -1,0 +1,31 @@
+/* 定义CSS变量 */
+:root {
+  --primary-color: #1890ff;
+  --border-radius: 8px;
+  --box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, 
+    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  background-color: #f8f9fa;
+}
+
+/* 覆盖Ant Design默认样式 */
+.ant-btn-primary {
+  background: var(--primary-color) !important;
+  border-radius: 20px !important;
+  padding: 0 20px !important;
+}
+
+.ant-card {
+  border-radius: var(--border-radius) !important;
+  box-shadow: var(--box-shadow) !important;
+  margin-bottom: 24px;
+}
+
+.ant-alert {
+  border-radius: var(--border-radius) !important;
+  margin-bottom: 24px;
+}
