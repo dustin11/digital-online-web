@@ -1,14 +1,7 @@
 import { createContext, useContext, ReactNode } from 'react';
-import { BrowserProvider, JsonRpcSigner, Network } from 'ethers';
-import { useWallet } from '../hooks/useWallet';
+import { WalletState, useWallet } from '../hooks/useWallet';
 
-type WalletContextType = {
-  provider?: BrowserProvider;
-  signer?: JsonRpcSigner;
-  account?: string;
-  balance?: string;
-  network?: Network;
-  isConnected: boolean;
+type WalletContextType = WalletState & {
   connectWallet: () => Promise<void>;
   disconnectWallet: () => void;
   checkNetwork: () => boolean;

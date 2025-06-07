@@ -8,7 +8,7 @@ declare global {
   }
 }
 
-type WalletState = {
+export type WalletState = {
   provider?: BrowserProvider;
   signer?: JsonRpcSigner;
   account?: string;
@@ -17,18 +17,6 @@ type WalletState = {
   isConnected: boolean;
 
   // checkNetwork?: () => boolean;
-};
-type WalletContextType = {
-  provider?: BrowserProvider;
-  signer?: JsonRpcSigner;
-  account?: string;
-  balance?: string;
-  network?: Network;
-  isConnected: boolean;
-  connectWallet: () => Promise<void>;
-  disconnectWallet: () => void;
-  checkNetwork: () => boolean;
-  switchNetwork: () => Promise<void>;
 };
 
 
@@ -39,10 +27,11 @@ export const useWallet = () => {
   const [state, setState] = useState<WalletState>({ isConnected: false });
 
   const initialize = useCallback(async () => {
-    // if (!window.ethereum) return;
+    // 添加isInitialized防止重复初始化 (多处使用usewallet即使用WalletContext也会重复执行)
+    // 如果只使用初始状态, 不使用alletContext, 多个组件只能一个加载到信息
     if (isInitialized || !window.ethereum) return;
     isInitialized = true;
-    
+
     try {
       const provider = new BrowserProvider(window.ethereum);
       const network = await provider.getNetwork();
