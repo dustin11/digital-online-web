@@ -14,9 +14,9 @@ import {
   } from './styles';
 
 export const NetworkInfo = () => {
-  const { isInitializing, account, balance, network, checkNetwork, switchNetwork } = useWalletContext();
+  const { isInitializing, isConnected, balance, network, checkNetwork, switchNetwork } = useWalletContext();
 
-  if (!network) return null;
+  // if (!network) return null;
 
   const isCorrectNetwork = checkNetwork();
 
@@ -25,7 +25,7 @@ export const NetworkInfo = () => {
       <NetworkStatusWrapper>
         <NetworkItem>
           <NetworkLabel>网络名称:</NetworkLabel>
-          <NetworkValue>{network.name}</NetworkValue>
+          <NetworkValue>{network?.name}</NetworkValue>
         </NetworkItem>
         <NetworkItem>
           <NetworkLabel>
@@ -45,10 +45,10 @@ export const NetworkInfo = () => {
         
         <NetworkItem>
           <NetworkLabel>链ID:</NetworkLabel>
-          <NetworkValue>{network.chainId.toString()}</NetworkValue>
+          <NetworkValue>{network?.chainId.toString()}</NetworkValue>
         </NetworkItem>
 
-        {!isCorrectNetwork && (
+        {isConnected && !isCorrectNetwork && (
           <NetworkAlert
             type="warning"
             message="网络不匹配"
