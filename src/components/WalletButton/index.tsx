@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dropdown, Button, Spin, MenuProps, message } from 'antd';
 import { 
   DisconnectOutlined,
@@ -11,18 +11,29 @@ import { ASSET_HUB } from '../../config/networks';
 import { StyledDropdown, ConnectButton } from './styles';
 
 export const WalletButton = () => {
-  const { 
+  const {
     isConnected,
+    isInitializing,
     account,
     balance,
     connectWallet,
     disconnectWallet,
   } = useWalletContext();
-  const [loading, setLoading] = useState(false);
+  
   const [open, setOpen] = useState(false);
 
+  useEffect(() => {
+    console.log("change isInitializing:", isInitializing)
+    if (isInitializing) {
+      
+    } else {
+      // 添加短暂延迟，避免加载状态闪烁
+      // const timer = setTimeout(() => setLocalLoading(false), 300);
+      // return () => clearTimeout(timer);
+    }
+  }, [isInitializing]);
+
   const handleConnect = async () => {
-    setLoading(true);
     try {
       await connectWallet();
     } catch (error) {
@@ -30,7 +41,6 @@ export const WalletButton = () => {
       console.error('WalletButton: 连接钱包失败 ', error);
       message.error(er.message);
     }
-    setLoading(false);
   };
 
   const copyAddress = () => {
@@ -72,12 +82,27 @@ export const WalletButton = () => {
     }
   ];
 
+  if (isInitializing && !isConnected) {
+    return (
+      <ConnectButton
+        type="primary"
+        loading={isInitializing}
+      >
+        正在连接...
+      </ConnectButton>
+      // <ConnectButton type="primary" >
+      //   <Spin size="small" />
+      //   正在连接...
+      // </ConnectButton>
+    );
+  }
+
   if (!isConnected) {
     return (
       <ConnectButton
         type="primary"
         onClick={handleConnect}
-        loading={loading}
+        loading={isInitializing}
       >
         连接钱包
       </ConnectButton>

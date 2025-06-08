@@ -27,6 +27,19 @@ export const NetworkInfo = () => {
           <NetworkLabel>网络名称:</NetworkLabel>
           <NetworkValue>{network.name}</NetworkValue>
         </NetworkItem>
+        <NetworkItem>
+          <NetworkLabel>
+          <button onClick={() => console.log('localStorage', localStorage.getItem('disCon'))}>
+            get storage
+          </button>
+          <button onClick={() => localStorage.setItem('disCon', 'false')}>
+            set storage
+          </button>
+          工式:
+          </NetworkLabel>
+          <NetworkValue>{network.name}</NetworkValue>
+        </NetworkItem>
+
         
         <NetworkItem>
           <NetworkLabel>链ID:</NetworkLabel>

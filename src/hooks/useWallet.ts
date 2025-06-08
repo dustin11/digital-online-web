@@ -15,22 +15,26 @@ export type WalletState = {
   balance?: string;
   network?: Network;
   isConnected: boolean;
-
+  isInitializing: boolean;
   // checkNetwork?: () => boolean;
 };
-
+function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 // 添加初始化状态锁
-let isInitialized = false;
+const ManualDisConKey = 'm-dis-con';
 
 export const useWallet = () => {
-  const [state, setState] = useState<WalletState>({ isConnected: false });
+  const [state, setState] = useState<WalletState>({ isConnected: false, isInitializing: false });
 
   const initialize = useCallback(async () => {
+    const isManuallyDisconnected = localStorage.getItem(ManualDisConKey) === 'true' ? true : false;
     // 添加isInitialized防止重复初始化 (多处使用usewallet即使用WalletContext也会重复执行)
     // 如果只使用初始状态, 不使用alletContext, 多个组件只能一个加载到信息
-    if (isInitialized || !window.ethereum) return;
-    isInitialized = true;
+    if (state.isInitializing || isManuallyDisconnected || !window.ethereum) return;
+    setState(prev => ({ ...prev, isInitializing: true }));
+    // console.log("......  start isInitializing:", state.isInitializing)
 
     try {
       const provider = new BrowserProvider(window.ethereum);
@@ -38,6 +42,7 @@ export const useWallet = () => {
       const signer = await provider.getSigner();
       const account = await signer.getAddress();
       const balance = await provider.getBalance(account);
+      // await sleep(2000);
       console.log('initialize network id:', network.chainId); 
       setState({
         provider,
@@ -46,18 +51,19 @@ export const useWallet = () => {
         balance: formatBalance(balance),
         network,
         isConnected: true,
-        
-        // checkNetwork: () => {
-        //   return network.chainId === BigInt(ASSET_HUB.chainId);
-        // },
+        isInitializing: false,
       });
+      // await sleep(1000);
+      // console.log("......  end isInitializing:", state.isInitializing)
     } catch (error) {
-      setState({ isConnected: false });
+      setState(prev => ({ ...prev, isConnected: false, isInitializing: false }));
+      console.error('initiallize error:', error);
     }
   }, []);
-
+  // 目前场景为手动连接钱包
   const connectWallet = useCallback(async () => {
     if (!window.ethereum) throw new Error('Wallet not detected');
+    localStorage.setItem(ManualDisConKey, 'false');
     try {
       const provider = new BrowserProvider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
@@ -68,7 +74,8 @@ export const useWallet = () => {
   }, [initialize]);
 
   const disconnectWallet = useCallback(() => {
-    setState({ isConnected: false });
+    localStorage.setItem(ManualDisConKey, 'true');
+    setState({ isConnected: false, isInitializing: false });
   }, []);
 
   const checkNetwork = useCallback(() => {
@@ -90,14 +97,8 @@ export const useWallet = () => {
   }, []);
 
   useEffect(() => {
-    const handleAccountsChanged = () => {
-      isInitialized = false; // 重置锁
-      initialize();
-    }
-    const handleChainChanged = () => {
-      isInitialized = false; // 重置锁
-      initialize();
-    }
+    const handleAccountsChanged = () => initialize();
+    const handleChainChanged = () => initialize();
     window.ethereum?.on('accountsChanged', handleAccountsChanged);
     window.ethereum?.on('chainChanged', handleChainChanged);
 
