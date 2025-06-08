@@ -14,7 +14,7 @@ import {
   } from './styles';
 
 export const NetworkInfo = () => {
-  const { network, checkNetwork, switchNetwork } = useWalletContext();
+  const { isInitializing, account, balance, network, checkNetwork, switchNetwork } = useWalletContext();
 
   if (!network) return null;
 
@@ -29,15 +29,17 @@ export const NetworkInfo = () => {
         </NetworkItem>
         <NetworkItem>
           <NetworkLabel>
-          <button onClick={() => console.log('localStorage', localStorage.getItem('disCon'))}>
-            get storage
-          </button>
-          <button onClick={() => localStorage.setItem('disCon', 'false')}>
-            set storage
-          </button>
-          工式:
+          余额:
           </NetworkLabel>
-          <NetworkValue>{network.name}</NetworkValue>
+          <NetworkValue>
+            {balance}
+            <button onClick={() => console.log('localStorage', localStorage.getItem('disCon'))}>
+              get storage
+            </button>
+            <button onClick={() => localStorage.setItem('disCon', 'false')}>
+              set storage
+            </button>
+          </NetworkValue>
         </NetworkItem>
 
         

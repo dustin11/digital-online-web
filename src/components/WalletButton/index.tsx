@@ -19,11 +19,11 @@ export const WalletButton = () => {
     connectWallet,
     disconnectWallet,
   } = useWalletContext();
-  
+
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    console.log("change isInitializing:", isInitializing)
+    // console.log("change isInitializing:", isInitializing)
     if (isInitializing) {
       
     } else {

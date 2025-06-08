@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { BrowserProvider, JsonRpcSigner, Network } from 'ethers';
+import { BrowserProvider, JsonRpcSigner, Network, EthersError } from 'ethers';
 import { ASSET_HUB, SUPPORTED_CHAINS } from '../config/networks';
 
 declare global {
@@ -55,9 +55,14 @@ export const useWallet = () => {
       });
       // await sleep(1000);
       // console.log("......  end isInitializing:", state.isInitializing)
-    } catch (error) {
+    } catch (e) {
       setState(prev => ({ ...prev, isConnected: false, isInitializing: false }));
-      console.error('initiallize error:', error);
+      console.error('initiallize error:', e);
+      const error = e as EthersError;
+      if ((typeof error.code === 'number' && error.code === 4001)) {// User rejected the request
+        disconnectWallet();
+      }
+      
     }
   }, []);
   // 目前场景为手动连接钱包
@@ -73,9 +78,23 @@ export const useWallet = () => {
     }
   }, [initialize]);
 
-  const disconnectWallet = useCallback(() => {
+  const disconnectWallet = useCallback(async() => {
     localStorage.setItem(ManualDisConKey, 'true');
     setState({ isConnected: false, isInitializing: false });
+    // 标准断开方法 (EIP-2255) ok不支持
+    if (window.ethereum?.request) {
+      try {
+        await window.ethereum.request({
+          method: 'wallet_revokePermissions',
+          params: [{
+            eth_accounts: {}
+          }]
+        });
+      } catch (error) {
+        console.log('钱包不支持主动断开:', error);
+      }
+    }
+
   }, []);
 
   const checkNetwork = useCallback(() => {
@@ -96,15 +115,25 @@ export const useWallet = () => {
     }
   }, []);
 
+  const handleDisconnect = (error: { code: number; message: string }) => {
+    console.error('钱包断开连接:', error);
+    disconnectWallet();
+  };
+
   useEffect(() => {
     const handleAccountsChanged = () => initialize();
     const handleChainChanged = () => initialize();
     window.ethereum?.on('accountsChanged', handleAccountsChanged);
     window.ethereum?.on('chainChanged', handleChainChanged);
+    // 点击钱包断开, ok可触发 meatmask不行
+    window.ethereum?.on('disconnect', handleDisconnect);
+    // state.provider?.on('disconnect', handleDisconnect);
 
     return () => {
       window.ethereum?.removeListener('accountsChanged', handleAccountsChanged);
       window.ethereum?.removeListener('chainChanged', handleChainChanged);
+      window.ethereum?.removeListener('disconnect', handleDisconnect);
+      // state.provider?.removeListener('disconnect', handleDisconnect);
     };
   }, [initialize]);
 
