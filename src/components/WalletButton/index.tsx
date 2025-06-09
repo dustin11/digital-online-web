@@ -9,6 +9,7 @@ import {
 import { useWalletContext } from '../../contexts/WalletContext';
 import { ASSET_HUB } from '../../config/networks';
 import { StyledDropdown, ConnectButton } from './styles';
+import { getErrorByStr } from '../../utils/errorUtils';
 
 export const WalletButton = () => {
   const {
@@ -37,9 +38,10 @@ export const WalletButton = () => {
     try {
       await connectWallet();
     } catch (error) {
-      const er = error as Error; 
+      // const e = error as Error;
+      const msg = getErrorByStr(error + "", 2) as string;
       console.error('WalletButton: 连接钱包失败 ', error);
-      message.error(er.message);
+      message.error(msg || '连接钱包失败');
     }
   };
 

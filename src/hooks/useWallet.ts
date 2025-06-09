@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { BrowserProvider, JsonRpcSigner, Network, EthersError } from 'ethers';
 import { ASSET_HUB, SUPPORTED_CHAINS } from '../config/networks';
+import { message } from 'antd';
+import { getErrorByStr } from '../utils/errorUtils';
 
 declare global {
   interface Window {
@@ -57,12 +59,23 @@ export const useWallet = () => {
       // console.log("......  end isInitializing:", state.isInitializing)
     } catch (e) {
       setState(prev => ({ ...prev, isConnected: false, isInitializing: false }));
-      console.error('initiallize error:', e);
+      
       const error = e as EthersError;
       if ((typeof error.code === 'number' && error.code === 4001)) {// User rejected the request
         disconnectWallet();
       }
-      
+      else if ((typeof error.code === 'number' && error.code === -32002)) {        
+        message.error('请先完成钱包弹窗操作');
+      }
+      // error哪个垃圾被包装成: could not coalesce error (error={ "code": -32002, "payload": { "method": "eth_requestAccounts", "params": [  ] } }, payload={ "method": "eth_requestAccounts", "params": [  ] }, code=UNKNOWN_ERROR, version=6.14.1)
+      // 没法直接获取code 应该是rpc 改为钱包连接时处理
+      const code = getErrorByStr(e + "", 1);
+      if(code === -32002)
+        message.error('请先完成钱包弹窗操作');
+      // else{
+      //  throw new Error(`初始化失败: ${error.message || '未知错误'}`);
+      // }
+      console.error('initiallize error:', e);      
     }
   }, []);
   // 目前场景为手动连接钱包
@@ -74,9 +87,10 @@ export const useWallet = () => {
       await provider.send("eth_requestAccounts", []);
       return initialize();
     } catch (error) {
-      throw new Error('Connection failed');
+      throw error;
     }
   }, [initialize]);
+
 
   const disconnectWallet = useCallback(async() => {
     localStorage.setItem(ManualDisConKey, 'true');
